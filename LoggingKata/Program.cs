@@ -5,7 +5,7 @@ using GeoCoordinatePortable;
 
 namespace LoggingKata
 {
-    class Program
+    public class Program
     {
         static readonly ILog logger = new TacoLogger();
         const string csvPath = "TacoBell-US-AL.csv";
@@ -19,7 +19,7 @@ namespace LoggingKata
 
             // use File.ReadAllLines(path) to grab all the lines from your csv file
             // Log and error if you get 0 lines and a warning if you get 1 line
-            var lines = File.ReadAllLines(csvPath);
+            string[] lines = File.ReadAllLines(csvPath);
 
             logger.LogInfo($"Lines: {lines[0]}");
 
@@ -27,16 +27,20 @@ namespace LoggingKata
             var parser = new TacoParser();
 
             // Grab an IEnumerable of locations using the Select command: var locations = lines.Select(parser.Parse);
-            var locations = lines.Select(parser.Parse).ToArray();
+            ITrackable[] locations = lines.Select(line => parser.Parse(line)).ToArray();
 
             // DON'T FORGET TO LOG YOUR STEPS
 
             // Now that your Parse method is completed, START BELOW ----------
 
             // TODO: Create two `ITrackable` variables with initial values of `null`. These will be used to store your two taco bells that are the farthest from each other.
-            // Create a `double` variable to store the distance
+            ITrackable Tbell1 = null;
+            ITrackable Tbell2 = null;
 
+            // Create a `double` variable to store the distance
             // Include the Geolocation toolbox, so you can compare locations: `using GeoCoordinatePortable;`
+
+            double distance = 0;
 
             //HINT NESTED LOOPS SECTION---------------------
             // Do a loop for your locations to grab each location as the origin (perhaps: `locA`)
@@ -52,8 +56,27 @@ namespace LoggingKata
 
             // Once you've looped through everything, you've found the two Taco Bells farthest away from each other.
 
+            for (int i = 0; i < locations.Length; i++)
+            {
+                var locA = locations[i];
 
-            
+                var corA = new GeoCoordinate(locA.Location.Latitude, locA.Location.Longitude);
+
+                for (int j = 0; j < locations.Length; j++)
+                {
+                    var locB= locations[j];
+                    var corB= new GeoCoordinate(locB.Location.Latitude, locB.Location.Longitude);
+
+                    if (corA.GetDistanceTo(corB) > distance)
+                    {
+                        distance = corA.GetDistanceTo(corB);
+                        Tbell1 = locA;
+                        Tbell2 = locB;
+                    }
+                }
+            }
+
+            Console.WriteLine($"{Tbell1.Name} and {Tbell2.Name} are furthest apart");
         }
     }
 }
